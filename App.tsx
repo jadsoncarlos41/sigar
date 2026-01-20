@@ -28,7 +28,7 @@ export default function App() {
 
   const [currentView, setCurrentView] = useState<ViewState>('DASHBOARD');
   const [selectedEscolaId, setSelectedEscolaId] = useState<string | null>(null);
-  
+
   // App Data State
   const [escolas, setEscolas] = useState<Escola[]>([]);
   const [visitas, setVisitas] = useState<Visita[]>([]);
@@ -93,26 +93,26 @@ export default function App() {
         id: e.id,
         nome: e.nome,
         gestor: e.gestor,
-        coordenador: e.coordenador, 
+        coordenador: e.coordenador,
         localizacao: e.localizacao,
         segmentos: e.segmentos || [],
         alunosMatriculados: e.alunos_matriculados,
         indicadores: e.indicadores || { ideb: 0, frequenciaMedia: 0, fluenciaLeitora: 0, taxaAprovacao: 0 },
         dadosEducacionais: e.dados_educacionais || {},
         planoAcao: metasData?.filter((m: any) => m.escola_id === e.id).map((m: any) => ({ ...m, status: m.status as any })) || [],
-        recursosHumanos: rhData?.filter((r: any) => r.escola_id === e.id).map((r: any) => ({ 
+        recursosHumanos: rhData?.filter((r: any) => r.escola_id === e.id).map((r: any) => ({
           id: r.id,
           funcao: r.funcao,
           nome: r.nome,
           telefone: r.telefone,
           email: r.email,
-          dataNomeacao: r.data_nomeacao, 
-          tipoVinculo: r.tipo_vinculo, 
-          etapaAtuacao: r.etapa_atuacao, 
-          componenteCurricular: r.componente_curricular 
+          dataNomeacao: r.data_nomeacao,
+          tipoVinculo: r.tipo_vinculo,
+          etapaAtuacao: r.etapa_atuacao,
+          componenteCurricular: r.componente_curricular
         })) || [],
         acompanhamentoMensal: acompData?.filter((a: any) => a.escola_id === e.id) || [],
-        relatoriosVisita: [] 
+        relatoriosVisita: []
       }));
 
       let visQuery = supabase.from('visitas').select('*');
@@ -123,17 +123,17 @@ export default function App() {
       if (visError) throw visError;
 
       const mappedVisitas: Visita[] = visData?.map((v: any) => ({
-         id: v.id,
-         escolaId: v.escola_id,
-         escolaNome: v.escola_nome || mappedEscolas.find(e => e.id === v.escola_id)?.nome || 'Escola',
-         data: v.data,
-         tipo: v.tipo,
-         foco: v.foco || [],
-         topicosPauta: v.topicos_pauta || [],
-         encaminhamentosRegistrados: v.encaminhamentos_registrados || [],
-         observacoes: v.observacoes,
-         encaminhamentos: v.encaminhamentos,
-         status: v.status
+        id: v.id,
+        escolaId: v.escola_id,
+        escolaNome: v.escola_nome || mappedEscolas.find(e => e.id === v.escola_id)?.nome || 'Escola',
+        data: v.data,
+        tipo: v.tipo,
+        foco: v.foco || [],
+        topicosPauta: v.topicos_pauta || [],
+        encaminhamentosRegistrados: v.encaminhamentos_registrados || [],
+        observacoes: v.observacoes,
+        encaminhamentos: v.encaminhamentos,
+        status: v.status
       })) || [];
 
       setEscolas(mappedEscolas);
@@ -152,7 +152,7 @@ export default function App() {
       if (error) {
         console.error("Auth session error:", error.message);
         // If there's an error like "Invalid Refresh Token", clear local storage and force re-auth
-        supabase.auth.signOut().catch(() => {}); 
+        supabase.auth.signOut().catch(() => { });
         setIsAuthenticated(false);
       } else if (session) {
         const email = session.user.email || '';
@@ -169,7 +169,7 @@ export default function App() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      if (event === ('SIGNED_OUT' as any) || event === ('USER_DELETED' as any)) {
         setIsAuthenticated(false);
         setUserEmail(null);
         setIsAdmin(false);
@@ -232,54 +232,54 @@ export default function App() {
 
     try {
       const { error } = await supabase.from('escolas').update({
-         nome: updatedEscola.nome,
-         gestor: updatedEscola.gestor,
-         coordenador: updatedEscola.coordenador,
-         localizacao: updatedEscola.localizacao,
-         segmentos: updatedEscola.segmentos,
-         alunos_matriculados: updatedEscola.alunosMatriculados,
-         indicadores: updatedEscola.indicadores,
-         dados_educacionais: updatedEscola.dadosEducacionais
+        nome: updatedEscola.nome,
+        gestor: updatedEscola.gestor,
+        coordenador: updatedEscola.coordenador,
+        localizacao: updatedEscola.localizacao,
+        segmentos: updatedEscola.segmentos,
+        alunos_matriculados: updatedEscola.alunosMatriculados,
+        indicadores: updatedEscola.indicadores,
+        dados_educacionais: updatedEscola.dadosEducacionais
       }).eq('id', updatedEscola.id);
 
       if (error) throw error;
 
       await supabase.from('metas_acao').delete().eq('escola_id', updatedEscola.id);
       if (updatedEscola.planoAcao.length > 0) {
-         await supabase.from('metas_acao').insert(updatedEscola.planoAcao.map(m => ({
-            escola_id: updatedEscola.id,
-            descricao: m.descricao,
-            prazo: m.prazo,
-            status: m.status,
-            responsavel: m.responsavel
-         })));
+        await supabase.from('metas_acao').insert(updatedEscola.planoAcao.map(m => ({
+          escola_id: updatedEscola.id,
+          descricao: m.descricao,
+          prazo: m.prazo,
+          status: m.status,
+          responsavel: m.responsavel
+        })));
       }
 
       await supabase.from('recursos_humanos').delete().eq('escola_id', updatedEscola.id);
       if (updatedEscola.recursosHumanos.length > 0) {
-         // Fix: Access componenteCurricular instead of componente_curricular on type RecursoHumano
-         await supabase.from('recursos_humanos').insert(updatedEscola.recursosHumanos.map(r => ({
-            escola_id: updatedEscola.id,
-            funcao: r.funcao,
-            nome: r.nome,
-            telefone: r.telefone,
-            email: r.email,
-            data_nomeacao: r.dataNomeacao,
-            tipo_vinculo: r.tipoVinculo,
-            etapa_atuacao: r.etapaAtuacao,
-            componente_curricular: r.componenteCurricular 
-         })));
+        // Fix: Access componenteCurricular instead of componente_curricular on type RecursoHumano
+        await supabase.from('recursos_humanos').insert(updatedEscola.recursosHumanos.map(r => ({
+          escola_id: updatedEscola.id,
+          funcao: r.funcao,
+          nome: r.nome,
+          telefone: r.telefone,
+          email: r.email,
+          data_nomeacao: r.dataNomeacao,
+          tipo_vinculo: r.tipoVinculo,
+          etapa_atuacao: r.etapaAtuacao,
+          componente_curricular: r.componenteCurricular
+        })));
       }
 
       await supabase.from('acompanhamento_mensal').delete().eq('escola_id', updatedEscola.id);
       if (updatedEscola.acompanhamentoMensal.length > 0) {
-         await supabase.from('acompanhamento_mensal').insert(updatedEscola.acompanhamentoMensal.map(a => ({
-             escola_id: updatedEscola.id,
-             pergunta: a.pergunta,
-             categoria: a.categoria,
-             resposta: a.resposta,
-             observacao: a.observacao
-         })));
+        await supabase.from('acompanhamento_mensal').insert(updatedEscola.acompanhamentoMensal.map(a => ({
+          escola_id: updatedEscola.id,
+          pergunta: a.pergunta,
+          categoria: a.categoria,
+          resposta: a.resposta,
+          observacao: a.observacao
+        })));
       }
 
       setEscolas(escolas.map(e => e.id === updatedEscola.id ? updatedEscola : e));
@@ -313,13 +313,13 @@ export default function App() {
       if (error) throw error;
 
       if (newSchool.acompanhamentoMensal.length > 0) {
-          await supabase.from('acompanhamento_mensal').insert(newSchool.acompanhamentoMensal.map(a => ({
-             escola_id: newSchool.id,
-             pergunta: a.pergunta,
-             categoria: a.categoria,
-             resposta: a.resposta,
-             observacao: a.observacao
-          })));
+        await supabase.from('acompanhamento_mensal').insert(newSchool.acompanhamentoMensal.map(a => ({
+          escola_id: newSchool.id,
+          pergunta: a.pergunta,
+          categoria: a.categoria,
+          resposta: a.resposta,
+          observacao: a.observacao
+        })));
       }
 
       setEscolas([...escolas, newSchool]);
@@ -341,7 +341,7 @@ export default function App() {
     try {
       const { error } = await supabase.from('escolas').delete().eq('id', id);
       if (error) throw error;
-      
+
       setEscolas(escolas.filter(e => e.id !== id));
       setVisitas(visitas.filter(v => v.escolaId !== id));
       showNotification('success', 'Escola e dados associados removidos com sucesso.');
@@ -364,17 +364,17 @@ export default function App() {
 
     try {
       const { error } = await supabase.from('visitas').insert({
-          id: visitId,
-          escola_id: newVisit.escolaId,
-          escola_nome: newVisit.escolaNome,
-          data: newVisit.data,
-          tipo: newVisit.tipo,
-          foco: newVisit.foco,
-          topicos_pauta: newVisit.topicosPauta,
-          encaminhamentos_registrados: newVisit.encaminhamentosRegistrados,
-          observacoes: newVisit.observacoes,
-          encaminhamentos: newVisit.encaminhamentos,
-          status: newVisit.status
+        id: visitId,
+        escola_id: newVisit.escolaId,
+        escola_nome: newVisit.escolaNome,
+        data: newVisit.data,
+        tipo: newVisit.tipo,
+        foco: newVisit.foco,
+        topicos_pauta: newVisit.topicosPauta,
+        encaminhamentos_registrados: newVisit.encaminhamentosRegistrados,
+        observacoes: newVisit.observacoes,
+        encaminhamentos: newVisit.encaminhamentos,
+        status: newVisit.status
       });
 
       if (error) throw error;
@@ -426,18 +426,18 @@ export default function App() {
     try {
       if (coord.id) {
         const { error } = await supabase.from('coordenadores').update({
-           nome: coord.nome,
-           contato: coord.contato,
-           regiao: coord.regiao
+          nome: coord.nome,
+          contato: coord.contato,
+          regiao: coord.regiao
         }).eq('id', coord.id);
-        
+
         if (error) throw error;
 
         await supabase.from('coordenador_escolas').delete().eq('coordenador_id', coord.id);
         if (coord.escolasIds.length > 0) {
-            await supabase.from('coordenador_escolas').insert(
-                coord.escolasIds.map(eid => ({ coordenador_id: coord.id, escola_id: eid }))
-            );
+          await supabase.from('coordenador_escolas').insert(
+            coord.escolasIds.map(eid => ({ coordenador_id: coord.id, escola_id: eid }))
+          );
         }
 
         setCoordenadores(coordenadores.map(c => c.id === coord.id ? coord : c));
@@ -445,18 +445,18 @@ export default function App() {
       } else {
         const newId = generateUUID();
         const { error } = await supabase.from('coordenadores').insert({
-            id: newId,
-            nome: coord.nome,
-            contato: coord.contato,
-            regiao: coord.regiao
+          id: newId,
+          nome: coord.nome,
+          contato: coord.contato,
+          regiao: coord.regiao
         });
 
         if (error) throw error;
 
         if (coord.escolasIds.length > 0) {
-            await supabase.from('coordenador_escolas').insert(
-                coord.escolasIds.map(eid => ({ coordenador_id: newId, escola_id: eid }))
-            );
+          await supabase.from('coordenador_escolas').insert(
+            coord.escolasIds.map(eid => ({ coordenador_id: newId, escola_id: eid }))
+          );
         }
 
         setCoordenadores([...coordenadores, { ...coord, id: newId }]);
@@ -489,8 +489,8 @@ export default function App() {
     switch (currentView) {
       case 'DASHBOARD':
         return (
-          <Dashboard 
-            escolas={escolas} 
+          <Dashboard
+            escolas={escolas}
             visitas={visitas}
             onNavigateToSchools={() => setCurrentView('LISTA_ESCOLAS')}
             onUpdateVisitStatus={handleUpdateVisitStatus}
@@ -498,10 +498,10 @@ export default function App() {
         );
       case 'LISTA_ESCOLAS':
         return (
-          <SchoolList 
-            escolas={escolas} 
+          <SchoolList
+            escolas={escolas}
             onSelectEscola={handleSelectEscola}
-            onSave={handleSaveSchool} 
+            onSave={handleSaveSchool}
             onUpdate={handleUpdateEscola}
             onDelete={handleDeleteSchool}
           />
@@ -510,17 +510,17 @@ export default function App() {
         const escola = escolas.find(e => e.id === selectedEscolaId);
         if (!escola) return <div>Escola não encontrada</div>;
         return (
-          <SchoolDetail 
-            escola={escola} 
+          <SchoolDetail
+            escola={escola}
             historicoVisitas={visitas.filter(v => v.escolaId === escola.id)}
-            onBack={() => setCurrentView('LISTA_ESCOLAS')} 
+            onBack={() => setCurrentView('LISTA_ESCOLAS')}
             onUpdate={handleUpdateEscola}
             onUpdateVisitStatus={handleUpdateVisitStatus}
           />
         );
       case 'NOVA_VISITA':
         return (
-          <VisitForm 
+          <VisitForm
             escolas={escolas}
             onSave={handleSaveVisit}
             onCancel={() => setCurrentView('DASHBOARD')}
@@ -562,12 +562,12 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage onLogin={() => {}} onDemoLogin={handleDemoLogin} />;
+    return <LoginPage onLogin={() => { }} onDemoLogin={handleDemoLogin} />;
   }
 
   return (
-    <Layout 
-      currentView={currentView} 
+    <Layout
+      currentView={currentView}
       onChangeView={setCurrentView}
       onLogout={handleLogout}
       isAdmin={isAdmin}
@@ -578,7 +578,7 @@ export default function App() {
             <span className="font-bold">Modo de Demonstração SIGAR:</span>
             <span>Você está visualizando dados fictícios como Administrador.</span>
           </div>
-          <button 
+          <button
             onClick={handleLogout}
             className="text-xs bg-amber-200 hover:bg-amber-300 px-2 py-1 rounded transition font-bold"
           >
